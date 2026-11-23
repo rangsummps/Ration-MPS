@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cooking ration stock traceability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e9eff0;--surface:#fbfcfc;--ink:#18262c;--muted:#5a6d75;--line:#c5d2d6;--btn-ink:#fff;
+  --tin:#1f5a73;--in:#2b7a4b;--in-bg:#dcefe3;--out:#a8431f;--out-bg:#f6e0d6;--warn:#8a6100;--warn-bg:#f7ebc4;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10191d;--surface:#18252b;--ink:#e6eef0;--muted:#93a8b0;--line:#2c3f47;--btn-ink:#10191d;
+  --tin:#6fb7d3;--in:#6fcf95;--in-bg:#173323;--out:#f09a76;--out-bg:#3a2218;--warn:#f0c969;--warn-bg:#3a3010;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#10191d;--surface:#18252b;--ink:#e6eef0;--muted:#93a8b0;--line:#2c3f47;--btn-ink:#10191d;
+  --tin:#6fb7d3;--in:#6fcf95;--in-bg:#173323;--out:#f09a76;--out-bg:#3a2218;--warn:#f0c969;--warn-bg:#3a3010;color-scheme:dark;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;margin:0;letter-spacing:-.01em}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+header{padding:12px 0 14px}
+h1{font-size:clamp(1.8rem,5vw,2.8rem);font-weight:800;line-height:1.05}
+header p{margin:8px 0 0;color:var(--muted);max-width:60ch}
+nav{display:flex;gap:6px;flex-wrap:wrap;border-bottom:3px solid var(--tin);margin-bottom:20px}
+nav a{padding:10px 16px;text-decoration:none;color:var(--muted);font-weight:600;border-radius:6px 6px 0 0}
+nav a[aria-current="page"]{background:var(--tin);color:var(--btn-ink)}
+nav a:focus-visible,:focus-visible{outline:3px solid var(--tin);outline-offset:2px}
+section.view{display:none}
+section.view.on{display:block}
+h2{font-size:1.4rem;font-weight:600;margin-bottom:12px}
+h3{font-size:1.05rem;font-weight:600;margin:0 0 8px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:16px}
+.two{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.two{grid-template-columns:1fr}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.tile b{display:block;font:800 1.9rem "Bricolage Grotesque",system-ui,sans-serif;color:var(--tin);line-height:1.1}
+.tile span{color:var(--muted);font-size:.9rem}
+.tile.alert b{color:var(--out)}
+label{display:block;font-size:.9rem;font-weight:600;margin:10px 0 4px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.save{margin-top:16px;width:100%;border:0;border-radius:4px;padding:11px;font:600 1rem inherit;font-family:inherit;background:var(--in);color:var(--btn-ink);cursor:pointer}
+.save.out{background:var(--out)}
+.msg{min-height:1.4em;margin:10px 0 0;font-size:.9rem}
+.msg.err{color:var(--out)}.msg.ok{color:var(--in)}
+.item{border:1px solid var(--line);border-radius:6px;background:var(--surface);overflow:hidden;margin-bottom:12px}
+.item-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.item-h strong{font:600 1.15rem "Bricolage Grotesque",system-ui,sans-serif}
+.item-h span{font-size:1.4rem;font-weight:600;color:var(--tin)}
+.lot{display:flex;justify-content:space-between;gap:10px;padding:6px 14px;font-size:.92rem;flex-wrap:wrap}
+.lot+.lot{border-top:1px dashed var(--line)}
+.tag{display:inline-block;padding:0 8px;border-radius:99px;font-size:.8rem;font-weight:600}
+.tag.warn{background:var(--warn-bg);color:var(--warn)}
+.tag.bad{background:var(--out-bg);color:var(--out)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.tools>*{flex:1 1 180px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:680px;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.pill{padding:1px 9px;border-radius:99px;font-weight:600;font-size:.82rem}
+.pill.in{background:var(--in-bg);color:var(--in)}.pill.out{background:var(--out-bg);color:var(--out)}
+.del{background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;text-decoration:underline}
+.empty{color:var(--muted);padding:14px}
+.trace{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 16px;margin:0}
+.trace dt{color:var(--muted);font-size:.85rem}.trace dd{margin:0;font-weight:600}
+.recent{list-style:none;margin:0;padding:0}
+.recent li{padding:8px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Cooking ration stock traceability</h1>
+  <p>Record every lot of cooking ration that comes in and goes out. Check what is on hand, and trace any lot from supplier to the person it was issued to.</p>
+</header>
+<nav aria-label="Sections">
+  <a href="#overview" data-v="overview">Stock overview</a>
+  <a href="#stock-in" data-v="stock-in">Stock in</a>
+  <a href="#stock-out" data-v="stock-out">Stock out</a>
+  <a href="#ledger" data-v="ledger">Trace ledger</a>
+</nav>
+
+<section class="view" id="v-overview">
+  <h2>Stock overview</h2>
+  <div class="tiles" id="tiles"></div>
+  <div id="stock"></div>
+</section>
+
+<section class="view" id="v-stock-in">
+  <div class="two">
+    <div class="panel">
+      <h2>Record stock in</h2>
+      <label for="i-date">Date received</label><input type="date" id="i-date">
+      <label for="i-item">Item</label><input id="i-item" list="items" placeholder="e.g. Rice">
+      <datalist id="items"></datalist>
+      <label for="i-lot">Lot or batch number</label><input id="i-lot" placeholder="e.g. RC-1118-A">
+      <div class="row">
+        <div><label for="i-qty">Quantity</label><input type="number" id="i-qty" min="0" step="any"></div>
+        <div><label for="i-unit">Unit</label><input id="i-unit" placeholder="kg"></div>
+      </div>
+      <label for="i-party">Supplier</label><input id="i-party" placeholder="Supplier name">
+      <label for="i-exp">Expiry date</label><input type="date" id="i-exp">
+      <label for="i-note">Note (optional)</label><input id="i-note">
+      <button class="save" id="i-save" type="button">Save stock in</button>
+      <p class="msg" id="i-msg" role="status"></p>
+    </div>
+    <div class="panel"><h3>Latest stock in</h3><ul class="recent" id="i-recent"></ul></div>
+  </div>
+</section>
+
+<section class="view" id="v-stock-out">
+  <div class="two">
+    <div class="panel">
+      <h2>Record stock out</h2>
+      <label for="o-date">Date issued</label><input type="date" id="o-date">
+      <label for="o-lot">Lot to issue from</label><select id="o-lot"></select>
+      <label for="o-qty">Quantity</label><input type="number" id="o-qty" min="0" step="any">
+      <label for="o-party">Issued to</label><input id="o-party" placeholder="Kitchen or person">
+      <label for="o-note">Note (optional)</label><input id="o-note">
+      <button class="save out" id="o-save" type="button">Save stock out</button>
+      <p class="msg" id="o-msg" role="status"></p>
+    </div>
+    <div class="panel"><h3>Latest stock out</h3><ul class="recent" id="o-recent"></ul></div>
+  </div>
+</section>
+
+<section class="view" id="v-ledger">
+  <h2>Trace ledger</h2>
+  <div class="panel">
+    <div class="tools">
+      <select id="l-lot" aria-label="Trace a lot"></select>
+      <select id="l-type" aria-label="Filter by type"><option value="">All movements</option><option value="in">Stock in</option><option value="out">Stock out</option></select>
+      <input type="search" id="l-q" placeholder="Search item, lot or name" aria-label="Search the ledger">
+    </div>
+    <div id="l-sum"></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Date</th><th>Type</th><th>Item</th><th>Lot</th><th class="n">In</th><th class="n">Out</th><th class="n">Lot balance</th><th>Supplier or issued to</th><th></th></tr></thead>
+      <tbody id="l-body"></tbody>
+    </table></div>
+  </div>
+</section>
+</div>
+
+<script>
+(function(){
+var KEY="cooking-ration-trace-v1",E=[],VIEWS=["overview","stock-in","stock-out","ledger"];
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function r2(n){return Math.round(n*100)/100}
+function seed(){return[
+ {id:1,type:"in",date:"2026-11-03",item:"Rice",lot:"RC-1103-A",qty:200,unit:"kg",party:"Sabah Grain Supply",exp:"2027-05-03",note:""},
+ {id:2,type:"in",date:"2026-11-03",item:"Cooking oil",lot:"OIL-1103",qty:60,unit:"L",party:"Borneo Foods",exp:"2026-12-05",note:""},
+ {id:3,type:"in",date:"2026-11-10",item:"Lentils",lot:"LEN-1110",qty:80,unit:"kg",party:"Sabah Grain Supply",exp:"2027-03-10",note:""},
+ {id:4,type:"out",date:"2026-11-12",item:"Rice",lot:"RC-1103-A",qty:45,unit:"kg",party:"Kitchen 1",exp:"",note:"Weekly issue"},
+ {id:5,type:"out",date:"2026-11-14",item:"Cooking oil",lot:"OIL-1103",qty:12,unit:"L",party:"Kitchen 2",exp:"",note:""},
+ {id:6,type:"out",date:"2026-11-16",item:"Rice",lot:"RC-1103-A",qty:40,unit:"kg",party:"Kitchen 2",exp:"",note:""}]}
+function load(){try{var r=localStorage.getItem(KEY);if(r){E=JSON.parse(r);return}}catch(e){}E=seed()}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(E))}catch(e){}}
+function sorted(){return E.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:a.id-b.id})}
+function lots(){var m={};sorted().forEach(function(e){var k=e.item+"|"+e.lot;
+ if(!m[k])m[k]={key:k,item:e.item,lot:e.lot,unit:e.unit,exp:"",bal:0,inQty:0,outQty:0,from:"",recv:"",to:[]};
+ var l=m[k];if(e.type==="in"){l.bal+=+e.qty;l.inQty+=+e.qty;l.unit=e.unit||l.unit;if(e.exp)l.exp=e.exp;l.from=e.party;if(!l.recv)l.recv=e.date}
+ else{l.bal-=+e.qty;l.outQty+=+e.qty;if(l.to.indexOf(e.party)<0)l.to.push(e.party)}});
+ return Object.keys(m).map(function(k){return m[k]})}
+function daysTo(d){return Math.floor((new Date(d)-new Date(today()))/864e5)}
+function expTag(d){if(!d)return"";var n=daysTo(d);
+ if(n<0)return'<span class="tag bad">Expired</span>';
+ if(n<=30)return'<span class="tag warn">Expires in '+n+' days</span>';return""}
+function msg(id,t,c){var m=$(id);m.textContent=t;m.className="msg "+(c||"")}
+
+function renderOverview(){var L=lots().filter(function(l){return r2(l.bal)>0}),g={};
+ L.forEach(function(l){(g[l.item]=g[l.item]||[]).push(l)});
+ var names=Object.keys(g).sort(),soon=L.filter(function(l){return l.exp&&daysTo(l.exp)<=30}).length;
+ $("tiles").innerHTML='<div class="tile"><b>'+names.length+'</b><span>Items in stock</span></div>'+
+  '<div class="tile"><b>'+L.length+'</b><span>Lots on hand</span></div>'+
+  '<div class="tile"><b>'+E.length+'</b><span>Movements recorded</span></div>'+
+  '<div class="tile'+(soon?" alert":"")+'"><b>'+soon+'</b><span>Lots expired or expiring in 30 days</span></div>';
+ $("stock").innerHTML=names.length?names.map(function(n){var t=g[n].reduce(function(a,l){return a+l.bal},0);
+  return'<div class="item"><div class="item-h"><strong>'+esc(n)+'</strong><span>'+r2(t)+" "+esc(g[n][0].unit)+'</span></div>'+
+  g[n].map(function(l){return'<div class="lot"><span>Lot '+esc(l.lot)+" · "+r2(l.bal)+" "+esc(l.unit)+' left</span><span>'+(l.exp?"Expiry "+esc(l.exp)+" ":"")+expTag(l.exp)+'</span></div>'}).join("")+'</div>'}).join(""):
+  '<div class="panel empty">No stock on hand. Record a stock in to start.</div>';
+ $("items").innerHTML=Object.keys(E.reduce(function(m,e){m[e.item]=1;return m},{})).map(function(n){return'<option value="'+esc(n)+'">'}).join("");
+ var s=$("o-lot"),c=s.value;
+ s.innerHTML=L.length?L.map(function(l){return'<option value="'+esc(l.key)+'">'+esc(l.item)+" · lot "+esc(l.lot)+" · "+r2(l.bal)+" "+esc(l.unit)+" left</option>"}).join(""):'<option value="">No lots available</option>';
+ if(c)s.value=c;
+ var ls=$("l-lot"),lc=ls.value;
+ ls.innerHTML='<option value="">All lots</option>'+lots().map(function(l){return'<option value="'+esc(l.key)+'">'+esc(l.item)+" · lot "+esc(l.lot)+"</option>"}).join("");
+ ls.value=lc}
+function recent(t,id){var r=sorted().filter(function(e){return e.type===t}).reverse().slice(0,6);
+ $(id).innerHTML=r.length?r.map(function(e){return"<li><strong>"+esc(e.item)+"</strong> · lot "+esc(e.lot)+" · "+esc(e.qty)+" "+esc(e.unit)+"<br><small style=\"color:var(--muted)\">"+esc(e.date)+" · "+esc(e.party)+"</small></li>"}).join(""):'<li class="empty">Nothing recorded yet.</li>'}
+function renderLedger(){var q=$("l-q").value.toLowerCase(),f=$("l-type").value,k=$("l-lot").value,bal={},rows=[];
+ sorted().forEach(function(e){var key=e.item+"|"+e.lot;bal[key]=(bal[key]||0)+(e.type==="in"?+e.qty:-e.qty);e._b=bal[key];rows.push(e)});
+ rows=rows.filter(function(e){
+  if(k&&e.item+"|"+e.lot!==k)return false;if(f&&e.type!==f)return false;
+  return!q||(e.item+" "+e.lot+" "+e.party+" "+e.note).toLowerCase().indexOf(q)>-1}).reverse();
+ var s="";if(k){var l=lots().filter(function(x){return x.key===k})[0];
+  if(l)s='<dl class="trace panel"><div><dt>Item and lot</dt><dd>'+esc(l.item)+" · "+esc(l.lot)+'</dd></div><div><dt>Received from</dt><dd>'+esc(l.from||"Unknown")+'</dd></div><div><dt>Received on</dt><dd>'+esc(l.recv||"Unknown")+'</dd></div><div><dt>Expiry</dt><dd>'+esc(l.exp||"None recorded")+" "+expTag(l.exp)+'</dd></div><div><dt>Received</dt><dd>'+r2(l.inQty)+" "+esc(l.unit)+'</dd></div><div><dt>Issued</dt><dd>'+r2(l.outQty)+" "+esc(l.unit)+'</dd></div><div><dt>Remaining</dt><dd>'+r2(l.bal)+" "+esc(l.unit)+'</dd></div><div><dt>Issued to</dt><dd>'+esc(l.to.join(", ")||"Not issued yet")+'</dd></div></dl>'}
+ $("l-sum").innerHTML=s;
+ $("l-body").innerHTML=rows.length?rows.map(function(e){var i=e.type==="in";
+  return"<tr><td>"+esc(e.date)+'</td><td><span class="pill '+e.type+'">'+(i?"In":"Out")+"</span></td><td>"+esc(e.item)+"</td><td>"+esc(e.lot)+'</td><td class="n">'+(i?esc(e.qty):"")+'</td><td class="n">'+(i?"":esc(e.qty))+'</td><td class="n">'+r2(e._b)+" "+esc(e.unit)+"</td><td>"+esc(e.party)+(e.note?'<br><small style="color:var(--muted)">'+esc(e.note)+"</small>":"")+'</td><td><button class="del" data-id="'+e.id+'">Delete</button></td></tr>'}).join(""):'<tr><td colspan="9" class="empty">No movements match.</td></tr>'}
+function render(){renderOverview();recent("in","i-recent");recent("out","o-recent");renderLedger()}
+
+function addIn(){var d=$("i-date").value,item=$("i-item").value.trim(),lot=$("i-lot").value.trim(),q=parseFloat($("i-qty").value),u=$("i-unit").value.trim(),p=$("i-party").value.trim();
+ if(!d)return msg("i-msg","Enter the date received.","err");
+ if(!item||!lot)return msg("i-msg","Enter the item and the lot number.","err");
+ if(!(q>0))return msg("i-msg","Enter a quantity greater than zero.","err");
+ if(!u)return msg("i-msg","Enter the unit, for example kg.","err");
+ if(!p)return msg("i-msg","Enter the supplier.","err");
+ E.push({id:Date.now(),type:"in",date:d,item:item,lot:lot,qty:q,unit:u,party:p,exp:$("i-exp").value,note:$("i-note").value.trim()});
+ persist();["i-item","i-lot","i-qty","i-unit","i-party","i-exp","i-note"].forEach(function(i){$(i).value=""});
+ render();msg("i-msg","Stock in saved.","ok")}
+function addOut(){var d=$("o-date").value,v=$("o-lot").value,q=parseFloat($("o-qty").value),p=$("o-party").value.trim();
+ if(!v)return msg("o-msg","No lot has stock to issue.","err");
+ var l=lots().filter(function(x){return x.key===v})[0];
+ if(!d)return msg("o-msg","Enter the date issued.","err");
+ if(!(q>0))return msg("o-msg","Enter a quantity greater than zero.","err");
+ if(q>r2(l.bal))return msg("o-msg","Only "+r2(l.bal)+" "+l.unit+" left in this lot.","err");
+ if(!p)return msg("o-msg","Enter who the stock is issued to.","err");
+ E.push({id:Date.now(),type:"out",date:d,item:l.item,lot:l.lot,qty:q,unit:l.unit,party:p,exp:"",note:$("o-note").value.trim()});
+ persist();["o-qty","o-party","o-note"].forEach(function(i){$(i).value=""});
+ render();msg("o-msg","Stock out saved.","ok")}
+
+function show(){var v=(location.hash||"").slice(1);if(VIEWS.indexOf(v)<0)v="overview";
+ VIEWS.forEach(function(n){$("v-"+n).classList.toggle("on",n===v)});
+ Array.prototype.forEach.call(document.querySelectorAll("nav a"),function(a){if(a.getAttribute("data-v")===v)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")})}
+$("i-save").onclick=addIn;$("o-save").onclick=addOut;
+$("l-lot").onchange=renderLedger;$("l-type").onchange=renderLedger;$("l-q").oninput=renderLedger;
+$("l-body").onclick=function(ev){var b=ev.target.closest(".del");if(!b)return;
+ var id=+b.getAttribute("data-id"),snap=E;E=E.filter(function(x){return x.id!==id});
+ if(lots().some(function(l){return r2(l.bal)<0})){E=snap;return}
+ persist();render()};
+window.addEventListener("hashchange",show);
+$("i-date").value=$("o-date").value=today();
+load();render();show();
+})();
+</script>
+</body>
+</html>
